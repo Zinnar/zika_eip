@@ -5,6 +5,11 @@ library(plyr)
 library(aod)
 library(multcomp)
 library(vcd)
+library(ggplot2)
+library(stringr)
+library(aod)
+library(lme4)
+library(effects)
 
 #data wrangling
 setwd("C:/Users/rober/Dropbox/Grad School Research/Manuscripts/ZIKA EIP")
@@ -14,7 +19,6 @@ june <- read.csv("june_2017_cq_mastersheet_cleaned_for_R_full.csv", header=TRUE)
 str(oct)
 str(april)
 str(june)
-oct$day <- as.factor(oct$day)
 oct$temp <- as.factor(oct$temp)
 mean(oct$positive)
 oct$positive <- as.factor(oct$positive)
@@ -22,14 +26,12 @@ oct$org_num <- as.factor(oct$org_num)
 oct$plate <- as.factor(oct$plate)
 str(oct)
 
-april$day <- as.factor(april$day)
 april$temp <- as.factor(april$temp)
 april$positive <- as.factor(april$positive)
 april$org_num <- as.factor(april$org_num)
 april$plate <- as.factor(april$plate)
 str(april)
 
-june$day <- as.factor(june$day)
 june$temp <- as.factor(june$temp)
 june$positive <- as.factor(june$positive)
 june$org_num <- as.factor(june$org_num)
@@ -63,6 +65,31 @@ positive.counts<-data.frame(table(ap.oc.jun$day, ap.oc.jun$temp, ap.oc.jun$posit
 colnames(positive.counts)<-c("day", "temp", "positive", "frequency")
 
 
+###fixed effects models
+##fixed effects models
+
+abd.logit.1<-glm(positive~temp*day, data=full.abd, family="binomial")
+summary(abd.logit.1)
+abd.predict <- expand.grid(temp=c("27C","30C","33C"), day=seq(3,14,1), positive=0)
+pd<-predict(abd.logit.1, newdata=abd.predict, type="response", se.fit=TRUE)
+abd.predict$output<-pd$fit
+abd.predict$se<-pd$se.fit
+
+
+LW.logit.1<-glm(positive~temp*day, data=full.LW, family="binomial")
+summary(LW.logit.1)
+LW.predict <- expand.grid(temp=c("27C","30C","33C"), day=seq(3,14,1), positive=0)
+pd.lw<-predict(LW.logit.1, newdata=LW.predict, type="response", se.fit=TRUE)
+LW.predict$output<-pd.lw$fit
+LW.predict$se<-pd.lw$se.fit
+
+
+sal.logit.1<-glm(positive~temp*day, data=full.sal, family="binomial")
+summary(sal.logit.1)
+sal.predict <- expand.grid(temp=c("27C","30C","33C"), day=seq(3,14,1), positive=0)
+pd.sal<-predict(sal.logit.1, newdata=sal.predict, type="response", se.fit=TRUE)
+sal.predict$output<-pd.sal$fit
+sal.predict$se<-pd.sal$se.fit
 
 ###random effects, percent positive
 
@@ -82,9 +109,6 @@ ggplot(as.data.frame(abd.effect),
               aes(ymin=lower,ymax=upper))+
   labs(title="Predicted probability of Infection",
        x ="Day", y = "Predicted probabilities (logit)")+
-  scale_fill_grey()+
-  scale_color_grey()+
-  theme_bw()+
   theme(plot.title = element_text(hjust = 0.5))
 
 
